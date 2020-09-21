@@ -1,0 +1,137 @@
+---
+###############################################################################
+# TODO: Add the default values in here for any of the converted heat params
+# from tripleo-heat-templates. This serves two purposes: it facilitates
+# testing, and it allows for removal of THT params in the future without
+# affecting the ansible role.
+###############################################################################
+# TODO: Check for any multi-line strings, these aren't handled by this
+# template
+###############################################################################
+# Corresponds to MetricsQdrConnectors in THT
+# Connectors configuration (array of hashes).
+metrics_qdr_connectors: []
+
+# Corresponds to MetricsQdrUseSSL in THT
+# Set to true if it is required to use SSL or TLS on the connection for listener.
+metrics_qdr_use_ssl: False
+
+# Corresponds to MetricsQdrTrustedCerts in THT
+# Path to file containing trusted certificates for listener.
+metrics_qdr_trusted_certs: 
+
+# Corresponds to ServiceNetMap in THT
+# Mapping of service_name -> network name. Typically set via parameter_defaults
+# in the resource registry.  This mapping overrides those in
+# ServiceNetMapDefaults.
+service_net_map: {}
+
+# Corresponds to MonitoringSubscriptionQdr in THT
+monitoring_subscription_qdr: overcloud-qdr
+
+# Corresponds to MetricsQdrPassword in THT
+# Password which should be used to authenticate to the deployed qdrouterd.
+metrics_qdr_password: guest
+
+# Corresponds to RoleName in THT
+# Role name on which the service is applied
+role_name: 
+
+# Corresponds to MetricsQdrUseEncryption in THT
+# Set to true if it is required to encrypt connection to the peer for listener.
+metrics_qdr_use_encryption: False
+
+# Corresponds to MetricsQdrSslPwFile in THT
+# Path to SSL password file for certificate key for listener.
+metrics_qdr_ssl_pw_file: 
+
+# Corresponds to DefaultPasswords in THT
+default_passwords: {}
+
+# Corresponds to MetricsQdrAutoLinks in THT
+# AutoLinks for the Configured Addresses
+metrics_qdr_auto_links: []
+
+# Corresponds to MetricsQdrExternalEndpoint in THT
+# Whether QDR should listen on external network interface. To enable listening
+# on
+# external network one must deploy QDRs in mesh mode.
+metrics_qdr_external_endpoint: False
+
+# Corresponds to InternalTLSCAFile in THT
+# Specifies the default CA cert to use if TLS is used for services in the
+# internal network.
+internal_tlscafile: /etc/ipa/ca.crt
+
+# Corresponds to EnableSTF in THT
+# Set to true to enable configuration for STF client.
+enable_stf: False
+
+# Corresponds to RoleParameters in THT
+# Parameters specific to the role
+role_parameters: {}
+
+# Corresponds to MetricsQdrAddresses in THT
+# Addresses configuration (array of hashes).
+metrics_qdr_addresses: [{'prefix': u'collectd', 'distribution': u'multicast'}, {'prefix': u'ceilometer/metering.sample', 'distribution': u'multicast'}, {'prefix': u'ceilometer/event.sample', 'distribution': u'multicast'}]
+
+# Corresponds to MetricsQdrUsername in THT
+# Username which should be used to authenticate to the deployed qdrouterd.
+metrics_qdr_username: guest
+
+# Corresponds to MetricsQdrPort in THT
+# Service name or port number on which the qdrouterd will accept connections.
+metrics_qdr_port: 5666
+
+# Corresponds to MetricsQdrLoggingSource in THT
+metrics_qdr_logging_source: {'startmsg.regex': u'^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(.[0-9]+ \\+[0-9]+)? [A-Z]+ \\([a-z]+\\) ', 'tag': u'openstack.nova.consoleauth', 'file': u'/var/log/containers/qdrouterd/metrics_qdr.log'}
+
+# ContainerMetricsQdrImage has no default set in THT, so container_metrics_qdr_image
+# will not be set, but my be passed to this role anyway.
+# container_metrics_qdr_image : <undefined>
+
+# Corresponds to ServiceData in THT
+# Dictionary packing service data
+service_data: {}
+
+# Corresponds to MetricsQdrSSLProfiles in THT
+# SSL Profiles for the connectors (array of hashes).
+metrics_qdr_sslprofiles: []
+
+# Corresponds to EndpointMap in THT
+# Mapping of service endpoint -> protocol. Typically set via parameter_defaults
+# in the resource registry.
+endpoint_map: {}
+
+# Corresponds to MetricsQdrSslCertFile in THT
+# Path to SSL certificate file for listener.
+metrics_qdr_ssl_cert_file: 
+
+# ContainerMetricsQdrConfigImage has no default set in THT, so container_metrics_qdr_config_image
+# will not be set, but my be passed to this role anyway.
+# container_metrics_qdr_config_image : <undefined>
+
+# Corresponds to MetricsQdrSslCertDb in THT
+# Path to SSL certificate db for listener.
+metrics_qdr_ssl_cert_db: 
+
+# Corresponds to MetricsQdrSaslMechanisms in THT
+# List of accepted SASL auth mechanisms for listener in format of comma separated
+# list.
+metrics_qdr_sasl_mechanisms: ANONYMOUS
+
+# Corresponds to MetricsQdrSslPassword in THT
+# SSL password to be supplied for listener.
+metrics_qdr_ssl_password: 
+
+# Corresponds to MetricsQdrSslKeyFile in THT
+# Path to SSL private key file for listener.
+metrics_qdr_ssl_key_file: 
+
+# Corresponds to MetricsQdrAuthenticateClient in THT
+# Authenticate the client using SSL/TLS
+metrics_qdr_authenticate_client: no
+
+# Corresponds to EnableInternalTLS in THT
+enable_internal_tls: False
+

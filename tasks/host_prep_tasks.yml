@@ -1,0 +1,20 @@
+---
+###############################################################################
+# TODO: Check for incorrectly imported Heat functions e.g. get_param, which is
+# formatted as yaml here, and replace with the right var that was passed to
+# ansible via RoleParametersValue
+###############################################################################
+- file:
+    mode: '{{ item.mode|default(omit) }}'
+    path: '{{ item.path }}'
+    setype: '{{ item.setype }}'
+    state: directory
+  # name: create persistent logs directory
+  with_items:
+  - mode: '0750'
+    path: /var/log/containers/metrics_qdr
+    setype: container_file_t
+  - path: /var/lib/metrics_qdr
+    setype: container_file_t
+
+
