@@ -16,5 +16,3 @@
     setype: container_file_t
   - path: /var/lib/metrics_qdr
     setype: container_file_t
-
-
