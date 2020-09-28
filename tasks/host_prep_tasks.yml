@@ -9,10 +9,26 @@
     path: '{{ item.path }}'
     setype: '{{ item.setype }}'
     state: directory
-  # name: create persistent logs directory
+    name: create required directories
   with_items:
-  - mode: '0750'
-    path: /var/log/containers/metrics_qdr
+  - path: /var/log/containers/metrics_qdr
     setype: container_file_t
+    mode: '0750'
   - path: /var/lib/metrics_qdr
     setype: container_file_t
+    mode: '0750'
+  - path: /var/lib/config-data/ansible-generated/metrics_qdr
+    setype: container_file_t
+    mode: '0750'
+
+#***** This should move to the deploy task I think? I'm just hacking
+- name: "QDR configuration"
+#  become: true
+  # when:
+  #   - step|int == 1
+  block:
+    - name: "Generate the qdr config files"
+      include_role:
+        name: qdr_config
+      vars:
+        qdr_conf_output_dir: /var/lib/config-data/ansible-generated/metrics_qdr
