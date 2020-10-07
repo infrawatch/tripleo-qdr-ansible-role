@@ -1,0 +1,8 @@
+---
+- name: "QDR configuration"
+  block:
+    - name: "Generate the qdr config files"
+      include_role:
+        name: qdr_config
+      vars:
+        qdr_conf_output_dir: /var/lib/config-data/ansible-generated/metrics_qdr

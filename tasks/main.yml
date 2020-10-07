@@ -9,7 +9,7 @@
   debug:
     msg: "Pretending to parse vars"
 
-# TODO - mimic this
+# TODO - mimic this ??
 # conditions:
 #   internal_tls_enabled: {equals: [{get_param: EnableInternalTLS}, true]}
 #   enable_stf: {equals: [{get_param: EnableSTF}, true]}
