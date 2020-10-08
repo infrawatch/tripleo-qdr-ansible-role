@@ -6,13 +6,94 @@
 ###############################################################################
 
 - name: Set-up vars based on THT inputs
-  debug:
-    msg: "Pretending to parse vars"
+  set_fact:
 
-# TODO - mimic this ??
-# conditions:
-#   internal_tls_enabled: {equals: [{get_param: EnableInternalTLS}, true]}
-#   enable_stf: {equals: [{get_param: EnableSTF}, true]}
+# I'm trying to move THT login here by feeding through the required THT vars
+
+# Examples from collectd
+    # amqp_connection: "{{ (collectd_connection_type == 'amqp1')|default(false) }}"
+    # amqp_default_connection: "{{ (collectd_plugin_amqp1_host == 'nil')|default(false) }}"
+    # amqp_default_interval: "{{ (tripleo_collectd_amqp_interval|int == -666)|default(false) }}"
+    # collectd_connection: "{{ (collectd_connection_type == 'network')|default(false) }}"
+    # gnocchi_connection:  "{{ (collectd_connection_type == 'gnocchi')|default(false) }}"
+    # gnocchi_auth_basic:  "{{ (collectd_gnocchi_auth_mode == 'basic')|default(false) }}"
+    # gnocchi_default_connection: "{{ ((collectd_gnocchi_server == 'nil') and (collectd_gnocchi_keystone_endpoint == 'nil'))|default(false) }}"
+
+# Copied everything below from qdr-container-puppet.yaml
+    # This one doesn't seem used even in legacy puppet-qdr?
+          # - tripleo::profile::base::metrics::qdr::external_listener_addr:
+          #     get_param: [EndpointMap, MetricsQdrPublic, host]
+
+# For now it's a dummy value to make sure the input works, logic comes next
+    listener_addr:  1.2.3.4
+# So this would be somethng like `hiera(ServiceNetMap['StandaloneMetricsQdrNetwork'])`
+# Which I think is like `hiera('External')` or `hiera('InternalApi')`
+# Which ultimately yields an IP
+# Is the hiera because this ultimately goes into a pupper template which reads this from the host? Can I get this without hiera?
+
+          #     str_replace:
+          #       template:
+          #         "%{hiera('$NETWORK')}"
+          #       params:
+          #         $NETWORK:
+          #           get_param:
+          #             - ServiceNetMap
+          #             - str_replace:
+          #                 template: "ROLENAMEMetricsQdrNetwork"
+          #                 params:
+          #                   ROLENAME: {get_param: RoleName}
+          #   qdr::log_enable: 'info+'
+          #   qdr::log_output: '/var/log/qdrouterd/metrics_qdr.log'
+
+# Part of this may need to stay in the THT - it looks like it sets THT vars that drive certmonger
+          # - if:
+          #   - internal_tls_enabled
+          #   - generate_service_certificates: true
+          #     tripleo::metrics::qdr::service_certificate: '/etc/pki/tls/certs/metrics_qdr.crt'
+          #     tripleo::metrics::qdr::service_key: '/etc/pki/tls/private/metrics_qdr.key'
+# While we could match these statically, they should actually be passed in from the THT
+          #     tripleo::profile::base::metrics::qdr::certificate_specs:
+          #       service_certificate: '/etc/pki/tls/certs/metrics_qdr.crt'
+          #       service_key: '/etc/pki/tls/private/metrics_qdr.key'
+          #       postsave_cmd: "/usr/bin/certmonger-metrics-qdr-refresh.sh"
+# This is the same as above but with `fqdn_` prepended
+          #       hostname:
+          #         str_replace:
+          #           template: "%{hiera('fqdn_NETWORK')}"
+          #           params:
+          #             NETWORK:
+          #               get_param:
+          #                 - ServiceNetMap
+          #                 - str_replace:
+          #                     template: "ROLENAMEMetricsQdrNetwork"
+          #                     params:
+          #                       ROLENAME: {get_param: RoleName}
+          #       principal:
+          #         str_replace:
+# ??
+          #           template: "metrics_qdr/%{hiera('fqdn_NETWORK')}"
+          #           params:
+          #             NETWORK:
+          #               get_param:
+          #                 - ServiceNetMap
+          #                 - str_replace:
+          #                     template: "ROLENAMEMetricsQdrNetwork"
+          #                     params:
+          #                       ROLENAME: {get_param: RoleName}
+# Adding this to the list of ssl_profiles we feed through
+          #     tripleo::profile::base::metrics::qdr::ssl_profiles:
+          #       list_concat:
+          #         - get_param: MetricsQdrSSLProfiles
+          #         - - name: 'tlsProfile'
+          #             certFile: '/etc/pki/tls/certs/metrics_qdr.crt'
+          #             keyFile: '/etc/pki/tls/private/metrics_qdr.key'
+          #             caCertFile: {get_param: InternalTLSCAFile}
+          #   - tripleo::profile::base::metrics::qdr::ssl_profiles: {get_param: MetricsQdrSSLProfiles}
+          # - if:
+          #   - enable_stf
+          #   - tripleo::profile::base::metrics::qdr::interior_mesh_nodes: ''
+          #     tripleo::profile::base::metrics::qdr::router_mode: edge
+          #   - null
 
 - name: Report what deployment stage we're at
   debug:
