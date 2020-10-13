@@ -101,11 +101,11 @@ tripleo_endpoint_map: {}
 
 # Corresponds to MetricsQdrSslCertFile in THT
 # Path to SSL certificate file for listener.
-listener_ssl_cert_file:
+listener_ssl_cert_file: /etc/pki/tls/certs/metrics_qdr.crt
 
 # Corresponds to MetricsQdrSslCertDb in THT
 # Path to SSL certificate db for listener.
-listener_ssl_cert_db:
+listener_ssl_cert_db: /etc/pki/tls/certs/ca-bundle.crt
 
 # Corresponds to MetricsQdrSaslMechanisms in THT
 # List of accepted SASL auth mechanisms for listener in format of comma separated
@@ -118,7 +118,7 @@ metrics_qdr_ssl_password:
 
 # Corresponds to MetricsQdrSslKeyFile in THT
 # Path to SSL private key file for listener.
-listener_ssl_key_file:
+listener_ssl_key_file: /etc/pki/tls/certs/metrics_qdr.key
 
 # Corresponds to MetricsQdrAuthenticateClient in THT
 # Authenticate the client using SSL/TLS
