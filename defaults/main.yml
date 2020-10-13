@@ -101,7 +101,7 @@ tripleo_endpoint_map: {}
 
 # Corresponds to MetricsQdrSslCertFile in THT
 # Path to SSL certificate file for listener.
-metrics_qdr_ssl_cert_file:
+listener_ssl_cert_file:
 
 # Corresponds to MetricsQdrSslCertDb in THT
 # Path to SSL certificate db for listener.
