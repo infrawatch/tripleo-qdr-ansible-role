@@ -24,7 +24,7 @@
           # - tripleo::profile::base::metrics::qdr::external_listener_addr:
           #     get_param: [EndpointMap, MetricsQdrPublic, host]
 
-    listener_addr: lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork'])
+    listener_addr: "{{ lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork']) | regex_replace(\"b'(.*)'$\", '\\1') }}"
 
 # TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
     log_enable: 'info+'
