@@ -5,8 +5,9 @@
 # This should mimic the conditions section from tripleo-heat-templates        #
 ###############################################################################
 
-- name: Set-up vars based on THT inputs
+- name: Set listener address based on ServiceNetMap
   set_fact:
+    listener_addr: "{{ lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork']) | regex_replace(\"b'(.*)'$\", '\\1') }}"
 
 # I'm trying to move THT logic here by feeding through the required THT vars
 
@@ -24,11 +25,18 @@
           # - tripleo::profile::base::metrics::qdr::external_listener_addr:
           #     get_param: [EndpointMap, MetricsQdrPublic, host]
 
-    listener_addr: "{{ lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork']) | regex_replace(\"b'(.*)'$\", '\\1') }}"
+# *****
+- name: Augment ssl_profiles with internal profile if required
+  set_fact:
+    ssl_profiles: "{{ ssl_profiles }} + [{name: 'tlsProfile', certFile: listener_ssl_cert_file, keyFile: listener_ssl_key_file, caCertFile: tripleo_internal_tlscafile}]"
+  when: tripleo_enable_internal_tls
+# # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
 
-# TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
-    log_enable: 'info+'
-    log_output: '/var/log/qdrouterd/metrics_qdr.log'
+          #         - - name: 'tlsProfile'
+          #             certFile: '/etc/pki/tls/certs/metrics_qdr.crt'
+          #             keyFile: '/etc/pki/tls/private/metrics_qdr.key'
+# # This is already in ansible as tripleo_internal_tlscafile
+          #             caCertFile: {get_param: InternalTLSCAFile}
 
 # Part of this may need to stay in the THT - it looks like it sets THT vars that drive certmonger
           # - if:
@@ -65,6 +73,7 @@
           #                     template: "ROLENAMEMetricsQdrNetwork"
           #                     params:
           #                       ROLENAME: {get_param: RoleName}
+# # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
 # Adding this to the list of ssl_profiles we feed through
           #     tripleo::profile::base::metrics::qdr::ssl_profiles:
           #       list_concat:
@@ -72,6 +81,7 @@
           #         - - name: 'tlsProfile'
           #             certFile: '/etc/pki/tls/certs/metrics_qdr.crt'
           #             keyFile: '/etc/pki/tls/private/metrics_qdr.key'
+# # This is already in ansible as tripleo_internal_tlscafile
           #             caCertFile: {get_param: InternalTLSCAFile}
           #   - tripleo::profile::base::metrics::qdr::ssl_profiles: {get_param: MetricsQdrSSLProfiles}
           # - if:
@@ -79,6 +89,12 @@
           #   - tripleo::profile::base::metrics::qdr::interior_mesh_nodes: ''
           #     tripleo::profile::base::metrics::qdr::router_mode: edge
           #   - null
+
+- name: Set logging params
+  set_fact:
+# TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
+    log_enable: 'info+'
+    log_output: '/var/log/qdrouterd/metrics_qdr.log'
 
 - name: Report what deployment stage we're at
   debug:
