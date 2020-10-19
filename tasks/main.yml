@@ -5,9 +5,33 @@
 # This should mimic the conditions section from tripleo-heat-templates        #
 ###############################################################################
 
+- name: Set passthrough vars for qdr_config role
+  set_fact:
+    addresses: "{{ qdr_addresses }}"
+    autolink_addresses: "{{ qdr_autolink_addresses }}"
+    connectors: "{{ qdr_connectors }}"
+    listener_auth_peer: "{{ qdr_listener_auth_peer }}"
+    listener_port: "{{ qdr_listener_port }}"
+    listener_require_ssl: "{{ qdr_listener_require_ssl }}"
+    listener_sasl_mech: "{{ qdr_listener_sasl_mech }}"
+    listener_ssl_cert_db: "{{ qdr_listener_ssl_cert_db }}"
+    listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
+    listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
+    password: "{{ qdr_password }}"
+    ssl_password: "{{ qdr_listener_ssl_password }}"
+    ssl_profiles: "{{ qdr_ssl_profiles }}"
+    ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
+    trusted_certs: "{{ qdr_listener_trusted_certs }}"
+    username: "{{ qdr_username }}"
+
 - name: Set listener address based on ServiceNetMap
   set_fact:
     listener_addr: "{{ lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork']) | regex_replace(\"b'(.*)'$\", '\\1') }}"
+
+- name: Augment ssl_profiles with internal profile if required
+  set_fact:
+    ssl_profiles: "{{ ssl_profiles }} + [{name: 'tlsProfile', certFile: listener_ssl_cert_file, keyFile: listener_ssl_key_file, caCertFile: tripleo_internal_tlscafile}]"
+  when: tripleo_enable_internal_tls
 
 # I'm trying to move THT logic here by feeding through the required THT vars
 
@@ -26,10 +50,7 @@
           #     get_param: [EndpointMap, MetricsQdrPublic, host]
 
 # *****
-- name: Augment ssl_profiles with internal profile if required
-  set_fact:
-    ssl_profiles: "{{ ssl_profiles }} + [{name: 'tlsProfile', certFile: listener_ssl_cert_file, keyFile: listener_ssl_key_file, caCertFile: tripleo_internal_tlscafile}]"
-  when: tripleo_enable_internal_tls
+
 # # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
 
           #         - - name: 'tlsProfile'
