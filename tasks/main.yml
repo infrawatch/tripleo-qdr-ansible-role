@@ -30,7 +30,7 @@
 
 - name: Augment ssl_profiles with internal profile if required
   set_fact:
-    ssl_profiles: "{{ ssl_profiles }} + [{name: 'tlsProfile', certFile: listener_ssl_cert_file, keyFile: listener_ssl_key_file, caCertFile: tripleo_internal_tlscafile}]"
+    ssl_profiles: "{{ ssl_profiles + [{'name': 'tlsProfile', 'certFile': listener_ssl_cert_file, 'keyFile': listener_ssl_key_file, 'caCertFile': tripleo_internal_tlscafile}] }}"
   when: tripleo_enable_internal_tls
 
 # I'm trying to move THT logic here by feeding through the required THT vars
