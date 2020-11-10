@@ -5,11 +5,14 @@
 # This should mimic the conditions section from tripleo-heat-templates        #
 ###############################################################################
 
+
+# ***** TODO If this was just a loop through QDRVars it wouldn't need maintenance
 - name: Set passthrough vars for qdr_config role
   set_fact:
     addresses: "{{ qdr_addresses }}"
     autolink_addresses: "{{ qdr_autolink_addresses }}"
     connectors: "{{ qdr_connectors }}"
+    extra_listeners: "{{ qdr_extra_listeners }}"
     listener_auth_peer: "{{ qdr_listener_auth_peer }}"
     listener_port: "{{ qdr_listener_port }}"
     listener_require_ssl: "{{ qdr_listener_require_ssl }}"
@@ -18,6 +21,7 @@
     listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
     listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
     password: "{{ qdr_password }}"
+    router_mode: "{{ qdr_router_mode }}"
     ssl_password: "{{ qdr_listener_ssl_password }}"
     ssl_profiles: "{{ qdr_ssl_profiles }}"
     ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
@@ -126,5 +130,6 @@
 # done before each stage can be run                                           #
 ###############################################################################
 
+# *****TODO: Re-structure these to be logical tasks, not stage-based, and have tripleo do `tasks_from` instead of `include_role`, let tripleo define the stages and which tasks to run in each, tripleo-qdr-ansible-role should not know about stages
 - name: Include tasks for deploy stage
   include_tasks: "{{ deploy_stage }}.yml"

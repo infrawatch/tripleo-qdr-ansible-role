@@ -126,3 +126,7 @@ qdr_listener_auth_peer: no
 
 # Corresponds to EnableInternalTLS in THT
 tripleo_enable_internal_tls: False
+
+qdr_router_mode: edge
+
+qdr_extra_listeners: []

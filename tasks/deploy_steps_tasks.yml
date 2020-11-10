@@ -1,5 +1,64 @@
 ---
-- name: "QDR configuration"
+
+- name: Set interior IP for mesh mode connections to use ctlplane
+  set_fact:
+    interior_ip: "{{ lookup('hiera', 'ctlplane') | regex_replace(\"b'(.*)'$\", '\\1') }}"
+    interior_nodes: "{{ (lookup('hiera', 'controller_node_ips') | regex_replace(\"b'(.*)'$\", '\\1')).split(',') }}"
+
+- name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
+  set_fact:
+    mesh_connection_nodes: "{{ interior_nodes[0:interior_nodes.index(interior_ip)] }}"
+
+- debug:
+    msg: "Interior nodes : {{interior_nodes}}"
+- debug:
+    msg: "Mesh Connections : {{mesh_connection_nodes}}"
+
+- name: Set additional listeners and connectors for interior mesh nodes
+  when: router_mode == 'interior'
+  block:
+    - name: Add extra listener for edge -> internal
+      set_fact:
+# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+        extra_listeners:  "{{ extra_listeners + [{
+                      'host': interior_ip,
+                      'port': '5667',
+                      'role': 'inter-router',
+                      'authenticatePeer': 'no',
+                      'saslMechanisms': 'ANONYMOUS'}]
+                    }}"
+
+    - name: Add mesh connections
+      loop: "{{ [] +  mesh_connection_nodes}}"
+      set_fact:
+# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+        connectors: "{{ connectors + [{
+                      'host': item,
+                      'port': '5667',
+                      'role': 'inter-router',
+                      'verifyHostname': false,
+                      'saslMechanisms': 'ANONYMOUS'}]
+                    }}"
+
+#***** TODO - connect to one or more mesh nodes. Puppet code connected to one random one, I'd prefer to connect to 2 of them
+- name: Define connectors for edge -> internal, replacing existing connectors
+  when: router_mode == 'edge'
+  set_fact:
+# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+    connectors: "{{ [{
+                  'host': 'TODO-pick.interior.node',
+                  'port': '5668',
+                  'role': 'edge',
+                  'verifyHostname': false,
+                  'saslMechanisms': 'ANONYMOUS'
+                }] }}"
+
+- name: Augment ssl_profiles with internal profile if required
+  set_fact:
+    ssl_profiles: "{{ ssl_profiles + [{'name': 'tlsProfile', 'certFile': listener_ssl_cert_file, 'keyFile': listener_ssl_key_file, 'caCertFile': tripleo_internal_tlscafile}] }}"
+  when: tripleo_enable_internal_tls
+
+- name: "Include QDR config role"
   block:
     - name: "Generate the qdr config files"
       include_role:
