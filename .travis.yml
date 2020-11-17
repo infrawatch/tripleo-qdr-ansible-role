@@ -1,6 +1,6 @@
 os: linux
 language: python
-python: "2.7"
+python: "3.8"
 
 git:
   depth: false
@@ -23,7 +23,7 @@ install:
   - ansible --version
 
 script:
-  - ansible-lint
+  - ansible-lint .
 
 #notifications:
 #  webhooks: https://galaxy.ansible.com/api/v1/notifications/

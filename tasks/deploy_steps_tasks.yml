@@ -10,9 +10,9 @@
     mesh_connection_nodes: "{{ interior_nodes[0:interior_nodes.index(interior_ip)] }}"
 
 - debug:
-    msg: "Interior nodes : {{interior_nodes}}"
+    msg: "Interior nodes : {{ interior_nodes }}"
 - debug:
-    msg: "Mesh Connections : {{mesh_connection_nodes}}"
+    msg: "Mesh Connections : {{ mesh_connection_nodes }}"
 
 - name: Set additional listeners and connectors for interior mesh nodes
   when: router_mode == 'interior'
@@ -29,7 +29,7 @@
                     }}"
 
     - name: Add mesh connections
-      loop: "{{ [] +  mesh_connection_nodes}}"
+      loop: "{{ [] +  mesh_connection_nodes }}"
       set_fact:
 # *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
         connectors: "{{ connectors + [{
@@ -55,7 +55,12 @@
 
 - name: Augment ssl_profiles with internal profile if required
   set_fact:
-    ssl_profiles: "{{ ssl_profiles + [{'name': 'tlsProfile', 'certFile': listener_ssl_cert_file, 'keyFile': listener_ssl_key_file, 'caCertFile': tripleo_internal_tlscafile}] }}"
+    ssl_profiles: "{{ ssl_profiles +
+                     [{ 'name': 'tlsProfile',
+                        'certFile': listener_ssl_cert_file,
+                        'keyFile': listener_ssl_key_file,
+                        'caCertFile': tripleo_internal_tlscafile
+                      }] }}"
   when: tripleo_enable_internal_tls
 
 - name: "Include QDR config role"

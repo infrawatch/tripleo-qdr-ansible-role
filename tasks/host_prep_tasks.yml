@@ -1,5 +1,6 @@
 ---
-- file:
+- name: Create required host directories
+  file:
     mode: '{{ item.mode|default(omit) }}'
     path: '{{ item.path }}'
     setype: '{{ item.setype }}'
