@@ -28,9 +28,22 @@
     trusted_certs: "{{ qdr_listener_trusted_certs }}"
     username: "{{ qdr_username }}"
 
+- debug:
+    var: service_net_map
+
+- debug:
+    var: net_vip_map
+
+- debug:
+    var: tripleo_role_name
+
+# ***** This doesn't work. Find another way or move it back to THT
 - name: Set listener address based on ServiceNetMap
   set_fact:
-    listener_addr: "{{ lookup('hiera', tripleo_service_net_map[tripleo_role_name + 'MetricsQdrNetwork']) | regex_replace(\"b'(.*)'$\", '\\1') }}"
+    listener_addr: "{{ net_vip_map[service_net_map[(tripleo_role_name | lower) + '_metrics_qdr_network']] }}"
+    
+- debug:
+    msg: "listener_addr: {{listener_addr}}"
 
 - name: Augment ssl_profiles with internal profile if required
   set_fact:
@@ -41,17 +54,6 @@
                         'caCertFile': tripleo_internal_tlscafile
                       }] }}"
   when: tripleo_enable_internal_tls
-
-# I'm trying to move THT logic here by feeding through the required THT vars
-
-# Examples from collectd
-    # amqp_connection: "{{ (collectd_connection_type == 'amqp1')|default(false) }}"
-    # amqp_default_connection: "{{ (collectd_plugin_amqp1_host == 'nil')|default(false) }}"
-    # amqp_default_interval: "{{ (tripleo_collectd_amqp_interval|int == -666)|default(false) }}"
-    # collectd_connection: "{{ (collectd_connection_type == 'network')|default(false) }}"
-    # gnocchi_connection:  "{{ (collectd_connection_type == 'gnocchi')|default(false) }}"
-    # gnocchi_auth_basic:  "{{ (collectd_gnocchi_auth_mode == 'basic')|default(false) }}"
-    # gnocchi_default_connection: "{{ ((collectd_gnocchi_server == 'nil') and (collectd_gnocchi_keystone_endpoint == 'nil'))|default(false) }}"
 
 # Copied everything below from qdr-container-puppet.yaml
     # This one doesn't seem used even in legacy puppet-qdr?
@@ -68,41 +70,6 @@
 # # This is already in ansible as tripleo_internal_tlscafile
           #             caCertFile: {get_param: InternalTLSCAFile}
 
-# Part of this may need to stay in the THT - it looks like it sets THT vars that drive certmonger
-          # - if:
-          #   - internal_tls_enabled
-          #   - generate_service_certificates: true
-          #     tripleo::metrics::qdr::service_certificate: '/etc/pki/tls/certs/metrics_qdr.crt'
-          #     tripleo::metrics::qdr::service_key: '/etc/pki/tls/private/metrics_qdr.key'
-# While we could match these statically, they should actually be passed in from the THT
-          #     tripleo::profile::base::metrics::qdr::certificate_specs:
-          #       service_certificate: '/etc/pki/tls/certs/metrics_qdr.crt'
-          #       service_key: '/etc/pki/tls/private/metrics_qdr.key'
-          #       postsave_cmd: "/usr/bin/certmonger-metrics-qdr-refresh.sh"
-# This is the same as above but with `fqdn_` prepended
-          #       hostname:
-          #         str_replace:
-          #           template: "%{hiera('fqdn_NETWORK')}"
-          #           params:
-          #             NETWORK:
-          #               get_param:
-          #                 - ServiceNetMap
-          #                 - str_replace:
-          #                     template: "ROLENAMEMetricsQdrNetwork"
-          #                     params:
-          #                       ROLENAME: {get_param: RoleName}
-          #       principal:
-          #         str_replace:
-# ??
-          #           template: "metrics_qdr/%{hiera('fqdn_NETWORK')}"
-          #           params:
-          #             NETWORK:
-          #               get_param:
-          #                 - ServiceNetMap
-          #                 - str_replace:
-          #                     template: "ROLENAMEMetricsQdrNetwork"
-          #                     params:
-          #                       ROLENAME: {get_param: RoleName}
 # # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
 # Adding this to the list of ssl_profiles we feed through
           #     tripleo::profile::base::metrics::qdr::ssl_profiles:

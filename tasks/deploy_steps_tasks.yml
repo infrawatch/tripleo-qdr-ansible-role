@@ -36,7 +36,7 @@
                       'host': item,
                       'port': '5667',
                       'role': 'inter-router',
-                      'verifyHostname': false,
+                      'verifyHostname': 'no',
                       'saslMechanisms': 'ANONYMOUS'}]
                     }}"
 
@@ -49,7 +49,7 @@
                   'host': 'TODO-pick.interior.node',
                   'port': '5668',
                   'role': 'edge',
-                  'verifyHostname': false,
+                  'verifyHostname': 'no',
                   'saslMechanisms': 'ANONYMOUS'
                 }] }}"
 
