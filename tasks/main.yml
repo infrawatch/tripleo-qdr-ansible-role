@@ -5,8 +5,6 @@
 # This should mimic the conditions section from tripleo-heat-templates        #
 ###############################################################################
 
-
-# ***** TODO If this was just a loop through QDRVars it wouldn't need maintenance
 - name: Set passthrough vars for qdr_config role
   set_fact:
     addresses: "{{ qdr_addresses }}"
@@ -37,11 +35,15 @@
 - debug:
     var: tripleo_role_name
 
-# ***** This doesn't work. Find another way or move it back to THT
+# *CS
+# Q1. Alex Schultz suggested I consider moving this back to THT. It's so much more readable and testable here.
+#     Comments?
+# Q2. I added a snake_case filter to help with changing tripleo_role_name == "CephStorage" into ceph_storage. I was
+#     looking for the code that does the initial conversion so I could hopefully reuse it or at least behave the same.
 - name: Set listener address based on ServiceNetMap
   set_fact:
-    listener_addr: "{{ net_vip_map[service_net_map[(tripleo_role_name | lower) + '_metrics_qdr_network']] }}"
-    
+    listener_addr: "{{ hostvars[inventory_hostname][service_net_map[(tripleo_role_name | snake_case) + '_metrics_qdr_network'] + '_ip'] }}"
+
 - debug:
     msg: "listener_addr: {{listener_addr}}"
 
@@ -89,19 +91,11 @@
 
 - name: Set logging params
   set_fact:
-# TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
+# *CS TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
     log_enable: 'info+'
     log_output: '/var/log/qdrouterd/metrics_qdr.log'
 
-- name: Report what deployment stage we're at
-  debug:
-    msg: "This is deployment stage {{ deploy_stage }}"
 
-###############################################################################
-# TODO:  Above this line, set up the configs, and do whatever needs to be     #
-# done before each stage can be run                                           #
-###############################################################################
-
-# *****TODO: Re-structure these to be logical tasks, not stage-based, and have tripleo do `tasks_from` instead of `include_role`, let tripleo define the stages and which tasks to run in each, tripleo-qdr-ansible-role should not know about stages
+# *CS TODO: Re-structure these to be logical tasks, not stage-based, and have tripleo do `tasks_from` instead of `include_role`, let tripleo define the stages and which tasks to run in each, tripleo-qdr-ansible-role should not know about stages
 - name: Include tasks for deploy stage
   include_tasks: "{{ deploy_stage }}.yml"
