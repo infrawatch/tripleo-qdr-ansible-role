@@ -2,8 +2,8 @@
 
 - name: Set interior IP for mesh mode connections to use ctlplane
   set_fact:
-    interior_ip: "{{ lookup('hiera', 'ctlplane') | regex_replace(\"b'(.*)'$\", '\\1') }}"
-    interior_nodes: "{{ (lookup('hiera', 'controller_node_ips') | regex_replace(\"b'(.*)'$\", '\\1')).split(',') }}"
+    interior_ip: "{{ ctlplane_ip }}"
+    interior_nodes: "{{ controller_node_ips.split(',') }}"
 
 - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
   set_fact:
@@ -41,6 +41,7 @@
                     }}"
 
 #***** TODO - connect to one or more mesh nodes. Puppet code connected to one random one, I'd prefer to connect to 2 of them
+#***** TODO - this is being added in all cases, not just in mesh mode case
 - name: Define connectors for edge -> internal, replacing existing connectors
   when: router_mode == 'edge'
   set_fact:
