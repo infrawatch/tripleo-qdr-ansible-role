@@ -10,9 +10,9 @@
     mesh_connection_nodes: "{{ interior_nodes[0:interior_nodes.index(interior_ip)] }}"
 
 - debug:
-    msg: "Interior nodes : {{ interior_nodes }}"
+    var: interior_nodes
 - debug:
-    msg: "Mesh Connections : {{ mesh_connection_nodes }}"
+    var: mesh_connection_nodes
 
 - name: Set additional listeners and connectors for interior mesh nodes
   when: router_mode == 'interior'
