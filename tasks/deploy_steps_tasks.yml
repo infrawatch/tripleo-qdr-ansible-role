@@ -1,60 +1,68 @@
 ---
-
-- name: Set interior IP for mesh mode connections to use ctlplane
-  set_fact:
-    interior_ip: "{{ ctlplane_ip }}"
-    interior_nodes: "{{ controller_node_ips.split(',') }}"
-
-- name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
-  set_fact:
-    mesh_connection_nodes: "{{ interior_nodes[0:interior_nodes.index(interior_ip)] }}"
-
-- debug:
-    var: interior_nodes
-- debug:
-    var: mesh_connection_nodes
-
-- name: Set additional listeners and connectors for interior mesh nodes
-  when: router_mode == 'interior'
+- name: Configure the mesh mode settings if there are any interior nodes
+  when: interior_nodes != ""
   block:
-    - name: Add extra listener for edge -> internal
-      set_fact:
-# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-        extra_listeners:  "{{ extra_listeners + [{
-                      'host': interior_ip,
-                      'port': '5667',
-                      'role': 'inter-router',
-                      'authenticatePeer': 'no',
-                      'saslMechanisms': 'ANONYMOUS'}]
-                    }}"
 
-    - name: Add mesh connections
-      loop: "{{ [] +  mesh_connection_nodes }}"
-      set_fact:
-# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-        connectors: "{{ connectors + [{
-                      'host': item,
-                      'port': '5667',
-                      'role': 'inter-router',
-                      'verifyHostname': 'no',
-                      'saslMechanisms': 'ANONYMOUS'}]
-                    }}"
+  # *CS Q1. There must be a way to make this a proper list in THT to skip this step here?
+  - name: Set the list in interior mesh nodes
+    set_fact:
+      interior_nodes_list: "{{ interior_nodes.split(',') }}"
 
-#***** TODO - connect to one or more mesh nodes. Puppet code connected to one random one, I'd prefer to connect to 2 of them
-#***** TODO - this is being added in all cases, not just in mesh mode case
-- name: Define connectors for edge -> internal, replacing existing connectors
-  when: router_mode == 'edge'
-  set_fact:
-# *****TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-    connectors: "{{ [{
-                  'host': 'TODO-pick.interior.node',
-                  'port': '5668',
-                  'role': 'edge',
-                  'verifyHostname': 'no',
-                  'saslMechanisms': 'ANONYMOUS'
-                }] }}"
+  # *CS TODO metrics should have it's own network, and not use ctlplane. BZ1816046
+  - name: Set interior IP for mesh mode connections to use ctlplane
+    set_fact:
+      interior_ip: "{{ ctlplane_ip }}"
 
-- name: Augment ssl_profiles with internal profile if required
+  - name: Set additional listeners and connectors on interior mesh nodes
+    when: ctlplane_ip in interior_nodes
+    block:
+      - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
+        set_fact:
+          mesh_connection_nodes_list: "{{ interior_nodes[0:interior_nodes.index(interior_ip)] }}"
+
+      - debug:
+          var: interior_nodes
+      - debug:
+          var: mesh_connection_nodes_list
+
+      - name: Add extra listener for edge -> internal
+        set_fact:
+          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+          extra_listeners:  "{{ extra_listeners + [{
+                        'host': interior_ip,
+                        'port': '5667',
+                        'role': 'inter-router',
+                        'authenticatePeer': 'no',
+                        'saslMechanisms': 'ANONYMOUS'}]
+                      }}"
+
+      - name: Add mesh connections
+        loop: "{{ mesh_connection_nodes_list }}"
+        set_fact:
+          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+          connectors: "{{ connectors + [{
+                        'host': item,
+                        'port': '5667',
+                        'role': 'inter-router',
+                        'verifyHostname': 'no',
+                        'saslMechanisms': 'ANONYMOUS'}]
+                      }}"
+
+  # *CS TODO - connect to one or more mesh nodes. Puppet code connected to one random one, I'd prefer to connect to 2 of them
+  - name: Define connectors for edge -> internal, replacing existing connectors
+    when: not (ctlplane_ip in interior_nodes)
+    set_fact:
+    # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+      connectors: "{{ [{
+                    'host': 'TODO-pick.interior.node',
+                    'port': '5668',
+                    'role': 'edge',
+                    'verifyHostname': 'no',
+                    'saslMechanisms': 'ANONYMOUS'
+                  }] }}"
+# End of mesh-mode block
+
+- name: Augment ssl_profiles with internal profile if supplied
   set_fact:
     ssl_profiles: "{{ ssl_profiles +
                      [{ 'name': 'tlsProfile',
