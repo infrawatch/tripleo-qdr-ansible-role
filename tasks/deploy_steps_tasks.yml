@@ -9,18 +9,18 @@
   when: "{{ interior_nodes_list | length > 1 }}"
   block:
 
-  # *CS TODO: metrics should have it's own network, and not use ctlplane. BZ1816046
+  # TODO(BZ1816046): metrics should have it's own network, and not use ctlplane.
   - name: Set interior IP for mesh mode connections to use ctlplane
     set_fact:
       interior_ip: "{{ ctlplane_ip }}"
 
-  # *CS TODO: connect edge nodes to one or more mesh nodes. Puppet code connected to one random one, I'd prefer to connect to 2 of them
   - name: Define connectors for edge -> internal, replacing existing connectors
     when: not (interior_ip in interior_nodes_list)
+    loop: "{{ (interior_nodes | shuffle(seed=inventory_hostname))[0:2] }}"
     set_fact:
     # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
       connectors: "{{ [{
-                    'host': 'TODO-pick.interior.node',
+                    'host': item,
                     'port': '5668',
                     'role': 'edge',
                     'verifyHostname': 'no',
