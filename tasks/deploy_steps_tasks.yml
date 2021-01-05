@@ -27,9 +27,13 @@
                     'saslMechanisms': 'ANONYMOUS'
                   }] }}"
 
-  - name: Set additional listeners and connectors on interior mesh nodes
+  - name: Set additional listeners, connectors, and mode on interior mesh nodes
     when: interior_ip in interior_nodes_list
     block:
+      - name: Set mode to interior
+        set_fact:
+          router_mode: interior
+
       - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
         set_fact:
           mesh_connection_nodes_list: "{{ interior_nodes_list[0:interior_nodes.index(interior_ip)] }}"
