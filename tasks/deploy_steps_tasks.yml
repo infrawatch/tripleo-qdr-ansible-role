@@ -59,9 +59,6 @@
                         'saslMechanisms': 'ANONYMOUS'}]
                       }}"
 
-2021-01-07 17:15:58.553164 +0000 SERVER (info) [C108] Connection to 192.168.24.21:5668 failed: proton:io Connection refused - disconnected 192.168.24.21:5668
-
-
       - name: Add mesh connections
         loop: "{{ mesh_connection_nodes_list }}"
         set_fact:
