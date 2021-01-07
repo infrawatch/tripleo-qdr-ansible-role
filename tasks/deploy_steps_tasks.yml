@@ -1,13 +1,12 @@
 ---
 
-# *CS Q: There must be a way to make this a proper list in THT to skip this step here?
-- name: Set the list in interior mesh nodes
-  set_fact:
-    interior_nodes_list: "{{ interior_nodes.split(',') }}"
-
-- name: Configure the mesh mode settings if there are multiple interior nodes
-  when: "{{ interior_nodes_list | length > 1 }}"
+- name: Configure the mesh mode settings if requested
+  when: deployment_mode == 'controller-mesh'
   block:
+
+  - name: Set the list in interior mesh nodes
+    set_fact:
+      interior_nodes_list: "{{ controller_node_ips.split(',') }}"
 
   # TODO(BZ1816046): metrics should have it's own network, and not use ctlplane.
   - name: Set interior IP for mesh mode connections to use ctlplane
