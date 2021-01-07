@@ -13,18 +13,24 @@
     set_fact:
       interior_ip: "{{ ctlplane_ip }}"
 
-  - name: Define connectors for edge -> internal, replacing existing connectors
+  - name: Define connectors for edge -> interior, replacing existing connectors
     when: not (interior_ip in interior_nodes_list)
-    loop: "{{ (interior_nodes_list | shuffle(seed=inventory_hostname))[0:2] }}"
-    set_fact:
-    # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-      connectors: "{{ [{
-                    'host': item,
-                    'port': '5668',
-                    'role': 'edge',
-                    'verifyHostname': 'no',
-                    'saslMechanisms': 'ANONYMOUS'
-                  }] }}"
+    block:
+      - name: Remove existing connector
+        set_fact:
+          connectors: []
+
+      - name: Create connectors to to two random interior nodes
+        loop: "{{ (interior_nodes_list | shuffle(seed=inventory_hostname))[0:2] }}"
+        set_fact:
+        # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+          connectors: "{{ connectors + [{
+                        'host': item,
+                        'port': '5668',
+                        'role': 'edge',
+                        'verifyHostname': 'no',
+                        'saslMechanisms': 'ANONYMOUS'
+                      }] }}"
 
   - name: Set additional listeners, connectors, and mode on interior mesh nodes
     when: interior_ip in interior_nodes_list
@@ -42,16 +48,19 @@
       - debug:
           var: mesh_connection_nodes_list
 
-      - name: Add extra listener for edge -> internal
+      - name: Add extra listener for edge -> interior
         set_fact:
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
           extra_listeners:  "{{ extra_listeners + [{
                         'host': interior_ip,
-                        'port': '5667',
+                        'port': '5668',
                         'role': 'inter-router',
                         'authenticatePeer': 'no',
                         'saslMechanisms': 'ANONYMOUS'}]
                       }}"
+
+2021-01-07 17:15:58.553164 +0000 SERVER (info) [C108] Connection to 192.168.24.21:5668 failed: proton:io Connection refused - disconnected 192.168.24.21:5668
+
 
       - name: Add mesh connections
         loop: "{{ mesh_connection_nodes_list }}"
@@ -59,7 +68,7 @@
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
           connectors: "{{ connectors + [{
                         'host': item,
-                        'port': '5667',
+                        'port': '5668',
                         'role': 'inter-router',
                         'verifyHostname': 'no',
                         'saslMechanisms': 'ANONYMOUS'}]
