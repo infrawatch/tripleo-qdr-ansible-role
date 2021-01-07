@@ -15,7 +15,7 @@
 
   - name: Define connectors for edge -> internal, replacing existing connectors
     when: not (interior_ip in interior_nodes_list)
-    loop: "{{ (interior_nodes | shuffle(seed=inventory_hostname))[0:2] }}"
+    loop: "{{ (interior_nodes_list | shuffle(seed=inventory_hostname))[0:2] }}"
     set_fact:
     # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
       connectors: "{{ [{
@@ -35,10 +35,10 @@
 
       - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
         set_fact:
-          mesh_connection_nodes_list: "{{ interior_nodes_list[0:interior_nodes.index(interior_ip)] }}"
+          mesh_connection_nodes_list: "{{ interior_nodes_list[0:interior_nodes_list.index(interior_ip)] }}"
 
       - debug:
-          var: interior_nodes
+          var: interior_nodes_list
       - debug:
           var: mesh_connection_nodes_list
 
