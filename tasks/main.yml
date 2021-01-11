@@ -19,7 +19,6 @@
     listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
     listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
     password: "{{ qdr_password }}"
-    router_mode: "{{ qdr_router_mode }}"
     ssl_password: "{{ qdr_listener_ssl_password }}"
     ssl_profiles: "{{ qdr_ssl_profiles }}"
     ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
@@ -28,9 +27,6 @@
 
 - debug:
     var: service_net_map
-
-- debug:
-    var: net_vip_map
 
 - debug:
     var: tripleo_role_name

@@ -1,0 +1,43 @@
+---
+- name: Converge
+  hosts: qdrtest
+  tasks:
+    - name: Set the variables we need that usually come from tripleo
+      set_fact:
+        tripleo_role_name: Standalone
+        ctlplane_ip: 10.0.0.10
+        controller_node_ips: 10.0.0.20,10.0.0.30,10.0.0.40
+        service_net_map:
+          standalone_metrics_qdr_network: internal_api
+        internal_api_ip: 172.16.0.10
+        deploy_stage: deploy_steps_tasks
+        deployment_mode: edge-only
+        qdr_addresses: 
+          - distribution: multicast
+            prefix: collectd
+          - distribution: multicast
+            prefix: ceilometer/metering.sample
+          - distribution: multicast
+            prefix: ceilometer/event.sample
+        qdr_autolink_addresses: []
+        qdr_connectors: []
+        qdr_extra_listeners: []
+        qdr_listener_auth_peer: no
+        qdr_listener_port: 5666
+        qdr_listener_require_ssl: false
+        qdr_listener_sasl_mech: ANONYMOUS
+        qdr_listener_ssl_cert_db: /etc/ipa/ca.crt
+        qdr_listener_ssl_cert_file: /etc/pki/tls/certs/metrics_qdr.crt
+        qdr_listener_ssl_key_file: /etc/pki/tls/private/metrics_qdr.key
+        qdr_password: guest
+        qdr_listener_ssl_password: ''
+        qdr_ssl_profiles: []
+        qdr_listener_ssl_pw_file: ''
+        qdr_listener_trusted_certs: ''
+        qdr_username: guest
+
+    - include_role:
+        name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
+
+#     listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
+            
