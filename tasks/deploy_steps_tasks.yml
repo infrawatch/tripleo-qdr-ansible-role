@@ -87,5 +87,3 @@
     - name: "Generate the qdr config files"
       include_role:
         name: qdr-config-ansible-role
-      vars:
-        qdr_conf_output_dir: /var/lib/config-data/ansible-generated/metrics_qdr

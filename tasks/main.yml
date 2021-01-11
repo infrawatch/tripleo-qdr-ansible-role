@@ -18,6 +18,7 @@
     listener_ssl_cert_db: "{{ qdr_listener_ssl_cert_db }}"
     listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
     listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
+    log_output: "{{ qdr_log_output }}"
     password: "{{ qdr_password }}"
     ssl_password: "{{ qdr_listener_ssl_password }}"
     ssl_profiles: "{{ qdr_ssl_profiles }}"
@@ -90,8 +91,6 @@
   set_fact:
 # *CS TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
     log_enable: 'info+'
-    log_output: '/var/log/qdrouterd/metrics_qdr.log'
-
 
 # *CS TODO: Re-structure these to be logical tasks, not stage-based, and have tripleo do `tasks_from` instead of `include_role`, let tripleo define the stages and which tasks to run in each, tripleo-qdr-ansible-role should not know about stages
 - name: Include tasks for deploy stage
