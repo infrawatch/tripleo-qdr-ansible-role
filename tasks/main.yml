@@ -39,11 +39,7 @@
 #     looking for the code that does the initial conversion so I could hopefully reuse it or at least behave the same.
 - name: Set listener address based on ServiceNetMap
   set_fact:
-#    listener_addr: "{{ hostvars[inventory_hostname][service_net_map[(tripleo_role_name | snake_case) + '_metrics_qdr_network'] + '_ip'] }}"
     listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
-
-- debug:
-    msg: "listener_addr: {{listener_addr}}"
 
 - name: Augment ssl_profiles with internal profile if required
   set_fact:
