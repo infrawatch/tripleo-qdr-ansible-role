@@ -10,7 +10,6 @@ provisioner:
   log: true
   playbooks:
     prepare: ../common/prepare.yml
-    verify: ../common/verify.yml
   inventory:
     host_vars:
       qdrtest:
