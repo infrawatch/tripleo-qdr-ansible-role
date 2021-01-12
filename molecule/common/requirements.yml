@@ -2,5 +2,6 @@
 roles:
   - src: git+https://github.com/infrawatch/functional-tests
     name: functional_tests
+    version: "03fc9d5"
   - src: git+https://github.com/infrawatch/qdr-config-ansible-role
     name: qdr-config-ansible-role
