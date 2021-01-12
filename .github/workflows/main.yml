@@ -21,9 +21,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: "${{ github.repository }}"
-      # - uses: actions/setup-python@v2
-      #   with:
-      #     python-version: 3.6
       - name: Pre-pull container
         run: |
           sudo docker pull docker.io/tripleomaster/centos-binary-qdrouterd:current-tripleo-rdo
@@ -31,7 +28,7 @@ jobs:
         uses: gofrolist/molecule-action@v2
         with:
           molecule_command: test
-          molecule_args: --all
+          molecule_args: -s ${{ matrix.scenario }}
           molecule_working_dir: ${{ github.repository }}
 
   lint:
