@@ -8,7 +8,7 @@
         deployment_mode: edge-only
         controller_node_ips: 10.0.0.20,10.0.0.30,10.0.0.40
         ctlplane_ip: 10.0.0.10
-        internal_api_ip: 10.0.2.100
+        internal_api_ip: ansible_default_ipv4.address
         service_net_map:
           standalone_metrics_qdr_network: internal_api
         tripleo_role_name: Standalone
