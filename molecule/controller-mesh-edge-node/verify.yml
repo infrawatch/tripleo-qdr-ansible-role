@@ -1,0 +1,13 @@
+---
+- import_playbook: ../common/verify.yml
+
+- name: Check log for correct config
+  hosts: qdrtest
+  tasks:
+  - fail:
+      msg: "Router not started in Edge mode"
+    when: qdrlog_content.find('Router started in Edge mode') == -1
+
+  - fail:
+      msg: "No configured connector to internal mesh reported"
+    when: qdrlog_content is not search('Configured Connector:.*:5668 .* role=edge')

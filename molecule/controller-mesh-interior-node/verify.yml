@@ -1,0 +1,17 @@
+---
+- import_playbook: ../common/verify.yml
+
+- name: Check log for correct config
+  hosts: qdrtest
+  tasks:
+  - fail:
+      msg: "Router not started in Interior mode"
+    when: qdrlog_content.find('Router started in Interior mode') == -1
+
+  - fail:
+      msg: "No configured inter-router listener reported"
+    when: qdrlog_content is not search('Configured Listener:.*:5668 .* role=inter-router')
+
+  - fail:
+      msg: "No configured connector to internal mesh reported"
+    when: qdrlog_content is not search('Configured Connector:.*:5668 .* role=inter-router')
