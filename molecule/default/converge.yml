@@ -1,9 +1,17 @@
 ---
-- name: Converge
+- import_playbook: ../common/converge.yml
+
+- name: Converge edge-only config
   hosts: qdrtest
   tasks:
     - name: Set the variables we need that usually come from tripleo
       set_fact:
+        connectors:
+          - host: stf-default-interconnect-5671-service-telemetry.example.com
+            port: 443
+            role: edge
+            sslProfile: sslProfile
+            verifyHostname: false
         deploy_stage: deploy_steps_tasks
         deployment_mode: edge-only
         controller_node_ips: 10.0.0.20,10.0.0.30,10.0.0.40
@@ -16,3 +24,4 @@
 
     - include_role:
         name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
+        tasks_from: create_config

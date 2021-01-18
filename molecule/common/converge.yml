@@ -1,0 +1,7 @@
+---
+- name: Create host dirs for QDR
+  hosts: qdrtest
+  tasks:
+    - include_role:
+        name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
+        tasks_from: create_required_host_dirs

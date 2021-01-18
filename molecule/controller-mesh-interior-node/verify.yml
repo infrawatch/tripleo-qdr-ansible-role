@@ -4,14 +4,24 @@
 - name: Check log for correct config
   hosts: qdrtest
   tasks:
-  - fail:
-      msg: "Router not started in Interior mode"
-    when: qdrlog_content.find('Router started in Interior mode') == -1
+  - assert:
+      that:
+        - qdrlog_content.find('Router started in Interior mode') != -1
+      success_msg: Router started in Interior mode
 
-  - fail:
-      msg: "No configured inter-router listener reported"
-    when: qdrlog_content is not search('Configured Listener:.*:5668 .* role=inter-router')
+  - assert:
+      that:
+        - qdrlog_content is search('Configured Listener:.*:5668 .* role.inter-router')
+      success_msg: Inter-router listener configured
 
-  - fail:
-      msg: "No configured connector to internal mesh reported"
-    when: qdrlog_content is not search('Configured Connector:.*:5668 .* role=inter-router')
+  - assert:
+      that:
+        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 .* role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 .* role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.40:5668 .* role=edge')
+      success_msg: Connectors to other mesh nodes configured
+
+  - assert:
+      that:
+        - qdrlog_content is search('Configured Connector: stf-default-interconnect-5671-service-telemetry.example.com:443 .* role=edge')
+      success_msg: Connector to STF configured
