@@ -1,31 +1,19 @@
 ---
 
-- name: Set passthrough vars for qdr_config role
+- name: Set initial values for vars we will potentially mutate in this play
   set_fact:
-    addresses: "{{ qdr_addresses }}"
-    autolink_addresses: "{{ qdr_autolink_addresses }}"
     connectors: "{{ qdr_connectors }}"
     extra_listeners: "{{ qdr_extra_listeners }}"
-    listener_auth_peer: "{{ qdr_listener_auth_peer }}"
-    listener_port: "{{ qdr_listener_port }}"
-    listener_require_ssl: "{{ qdr_listener_require_ssl }}"
-    listener_sasl_mech: "{{ qdr_listener_sasl_mech }}"
-    listener_ssl_cert_db: "{{ qdr_listener_ssl_cert_db }}"
-    listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
-    listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
-    log_output: "{{ qdr_log_output }}"
-    password: "{{ qdr_password }}"
-    ssl_password: "{{ qdr_listener_ssl_password }}"
     ssl_profiles: "{{ qdr_ssl_profiles }}"
-    ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
-    trusted_certs: "{{ qdr_listener_trusted_certs }}"
-    username: "{{ qdr_username }}"
 
 # *CS
-# Q1. Alex Schultz suggested I consider moving this back to THT. It's so much more readable and testable here.
+# Q1. Alex Schultz suggested I consider moving this (computation of listener_addr) back to THT. It's so much more readable and testable here.
 #     Comments?
+# A1. Emma thinks it belongs here because it came from the output part of THT
 # Q2. I added a snake_case filter to help with changing tripleo_role_name == "CephStorage" into ceph_storage. I was
 #     looking for the code that does the initial conversion so I could hopefully reuse it or at least behave the same.
+# A2. Emma has a third implementation[1] but it is not the one I need to match
+#     [1] https://github.com/infrawatch/tripleo-ansible-conversion-starter/blob/master/templates/macros.yml
 - name: Set listener address based on ServiceNetMap
   set_fact:
     listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
@@ -42,16 +30,14 @@
 
 - name: Set logging params
   set_fact:
-# *CS TODO: Get these fed through as new QdrVars, right now there is no good way to alter them
+    # *CS TODO: Get this fed through in QdrVars, right now there is no good way to alter it
     log_enable: 'info+'
 
-#####
+##### Review this during next phase of TLS testing
 # Copied everything below from qdr-container-puppet.yaml
     # This one doesn't seem used even in legacy puppet-qdr?
           # - tripleo::profile::base::metrics::qdr::external_listener_addr:
           #     get_param: [EndpointMap, MetricsQdrPublic, host]
-
-# *****
 
 # # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
 
@@ -76,7 +62,7 @@
 
 
 - name: Configure the mesh mode settings if requested
-  when: deployment_mode == 'controller-mesh'
+  when: qdr_deployment_mode == 'controller-mesh'
   block:
 
   - name: Set the list in interior mesh nodes
@@ -162,3 +148,20 @@
     - name: "Generate the qdr config files"
       include_role:
         name: qdr_config
+      vars:
+        # These vars are passed through unchanged
+        addresses: "{{ qdr_addresses }}"
+        autolink_addresses: "{{ qdr_autolink_addresses }}"
+        listener_auth_peer: "{{ qdr_listener_auth_peer }}"
+        listener_port: "{{ qdr_listener_port }}"
+        listener_require_ssl: "{{ qdr_listener_require_ssl }}"
+        listener_sasl_mech: "{{ qdr_listener_sasl_mech }}"
+        listener_ssl_cert_db: "{{ qdr_listener_ssl_cert_db }}"
+        listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
+        listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
+        listener_ssl_password: "{{ qdr_listener_ssl_password }}"
+        listener_ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
+        listener_trusted_certs: "{{ qdr_listener_trusted_certs }}"
+        log_output: "{{ qdr_log_output }}"
+        password: "{{ qdr_password }}"
+        username: "{{ qdr_username }}"

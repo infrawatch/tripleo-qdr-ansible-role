@@ -6,21 +6,21 @@
   tasks:
     - name: Set the variables we need that usually come from tripleo
       set_fact:
-        connectors:
+        qdr_conf_output_dir: /etc/qpid-dispatch/
+        qdr_connectors:
           - host: stf-default-interconnect-5671-service-telemetry.example.com
             port: 443
             role: edge
             sslProfile: sslProfile
             verifyHostname: false
+        qdr_deployment_mode: controller-mesh
         deploy_stage: deploy_steps_tasks
-        deployment_mode: controller-mesh
         controller_node_ips: 10.0.0.20,10.0.0.30
         ctlplane_ip: 10.0.0.10
         internal_api_ip: "{{ ansible_default_ipv4.address }}"
         service_net_map:
           compute_metrics_qdr_network: internal_api
         tripleo_role_name: Compute
-        qdr_conf_output_dir: /etc/qpid-dispatch/
 
     - include_role:
         name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
