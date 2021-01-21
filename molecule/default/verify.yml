@@ -12,5 +12,5 @@
 
   - assert:
       that:
-        - qdrlog_content is search('Configured Connector: stf-default-interconnect-5671-service-telemetry.example.com:443 .* role=edge')
+        - qdrlog_content is search('Configured Connector: stf-default-interconnect-5671-service-telemetry.example.com:443 proto=any, role=edge, sslProfile=sslProfile')
       success_msg: Connector to STF configured

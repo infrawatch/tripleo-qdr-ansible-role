@@ -1,7 +1,7 @@
 ---
 - import_playbook: ../common/verify.yml
 
-- name: Check log for correct config
+- name: Check log for correct config of controller-mesh edge nodes
   hosts: qdrtest
   tasks:
   - assert:
@@ -11,8 +11,8 @@
 
   - assert:
       that:
-        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 .* role=edge')
-        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 .* role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 proto=any, role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 proto=any, role=edge')
       success_msg: Connectors to internal mesh configured
 
   - assert:

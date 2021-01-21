@@ -1,10 +1,13 @@
 ---
+# These tasks are responsible for the following tripleo-driven additions to the qdr config:
+#
+# 1) Mesh mode - Controllers form a QDR mesh which connects to the external endpoint, all other nodes connect to the mesh
+# 2) TLS Everywhere - Enabling SSL for mesh-to-mesh and edge-to-mesh connections
 
-- name: Set initial values for vars we will potentially mutate in this play
+
+- name: Get a mutable version of the connectors so we can supress it on edge nodes if controller-mesh is enabled
   set_fact:
     connectors: "{{ qdr_connectors }}"
-    extra_listeners: "{{ qdr_extra_listeners }}"
-    ssl_profiles: "{{ qdr_ssl_profiles }}"
 
 # *CS
 # Q1. Alex Schultz suggested I consider moving this (computation of listener_addr) back to THT. It's so much more readable and testable here.
@@ -18,15 +21,17 @@
   set_fact:
     listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
 
-- name: Augment ssl_profiles with internal profile if required
-  set_fact:
-    ssl_profiles: "{{ ssl_profiles +
-                     [{ 'name': 'tlsProfile',
-                        'certFile': listener_ssl_cert_file,
-                        'keyFile': listener_ssl_key_file,
-                        'caCertFile': tripleo_internal_tlscafile
-                      }] }}"
+- name: Handle EnableInternalTLS
   when: tripleo_enable_internal_tls
+  block:
+    - name: Augment extra_ssl_profiles with internal profile
+      set_fact:
+        extra_ssl_profiles: "{{ extra_ssl_profiles +
+                        [{ 'name': 'tlsProfile',
+                            'certFile': qdr_listener_ssl_cert_file,
+                            'keyFile': qdr_listener_ssl_key_file,
+                            'caCertFile': tripleo_internal_tlscafile
+                          }] }}"
 
 - name: Set logging params
   set_fact:
@@ -65,7 +70,7 @@
   when: qdr_deployment_mode == 'controller-mesh'
   block:
 
-  - name: Set the list in interior mesh nodes
+  - name: Set the list of interior mesh nodes
     set_fact:
       interior_nodes_list: "{{ controller_node_ips.split(',') }}"
 
@@ -104,17 +109,23 @@
         set_fact:
           mesh_connection_nodes_list: "{{ interior_nodes_list[0:interior_nodes_list.index(interior_ip)] }}"
 
-      - debug:
-          var: interior_nodes_list
-      - debug:
-          var: mesh_connection_nodes_list
-
       - name: Add extra listener for edge -> interior
         set_fact:
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
           extra_listeners:  "{{ extra_listeners + [{
                         'host': interior_ip,
                         'port': '5668',
+                        'role': 'edge',
+                        'authenticatePeer': 'no',
+                        'saslMechanisms': 'ANONYMOUS'}]
+                      }}"
+
+      - name: Add extra listener mesh connections
+        set_fact:
+          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
+          extra_listeners:  "{{ extra_listeners + [{
+                        'host': interior_ip,
+                        'port': '5667',
                         'role': 'inter-router',
                         'authenticatePeer': 'no',
                         'saslMechanisms': 'ANONYMOUS'}]
@@ -126,22 +137,12 @@
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
           connectors: "{{ connectors + [{
                         'host': item,
-                        'port': '5668',
+                        'port': '5667',
                         'role': 'inter-router',
                         'verifyHostname': 'no',
                         'saslMechanisms': 'ANONYMOUS'}]
                       }}"
 # End of mesh-mode block
-
-- name: Augment ssl_profiles with internal profile if supplied
-  set_fact:
-    ssl_profiles: "{{ ssl_profiles +
-                     [{ 'name': 'tlsProfile',
-                        'certFile': listener_ssl_cert_file,
-                        'keyFile': listener_ssl_key_file,
-                        'caCertFile': tripleo_internal_tlscafile
-                      }] }}"
-  when: tripleo_enable_internal_tls
 
 - name: "Include QDR config role"
   block:
@@ -149,7 +150,7 @@
       include_role:
         name: qdr_config
       vars:
-        # These vars are passed through unchanged
+        # These vars are passed through from tripleo unchanged
         addresses: "{{ qdr_addresses }}"
         autolink_addresses: "{{ qdr_autolink_addresses }}"
         listener_auth_peer: "{{ qdr_listener_auth_peer }}"
@@ -164,4 +165,5 @@
         listener_trusted_certs: "{{ qdr_listener_trusted_certs }}"
         log_output: "{{ qdr_log_output }}"
         password: "{{ qdr_password }}"
+        ssl_profiles: "{{ qdr_ssl_profiles }}"
         username: "{{ qdr_username }}"

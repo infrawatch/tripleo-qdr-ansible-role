@@ -1,5 +1,5 @@
 ---
-- name: Start the QDR
+- name: Dump the config file and start the QDR
   hosts: qdrtest
   tasks:
     - name: Check for qdrouterd.conf
@@ -8,6 +8,19 @@
         patterns: qdrouterd.conf
       register: conf
       failed_when: conf.files|length != 1
+
+    - name: Read the config file
+      slurp:
+        src: "{{ qdr_conf_output_dir }}/qdrouterd.conf"
+      register: qdrconfig
+
+    - name: Decode the content
+      set_fact:
+        qdrconfig_content: "{{ qdrconfig['content'] | b64decode }}"
+
+    - name: Split into lines
+      debug:
+        msg: "{{ qdrconfig_content.split('\n') }}"
 
     - name: Start qdrouterd
       command: qdrouterd -U qdrouterd -d
@@ -60,7 +73,15 @@
         msg: "[WARNING] Found errors in the log. Please review above"
       when: qdrlog_content.find('ERROR (error)') != -1
 
+- name: Check log for common QDR functionality
+  hosts: qdrtest
+  tasks:
     - assert:
         that:
-          - "{{ qdrlog_content is search ('Configured Listener: ' + ansible_default_ipv4.address + ':5666 proto=any.* role=normal') }}"
+          - "{{ qdrlog_content is search ('Configured Listener: ' + ansible_default_ipv4.address + ':5666 proto=any, role=normal') }}"
         success_msg: Local listener configured
+
+    - assert:
+        that:
+          - qdrlog_content is search('Created SSL Profile with name sslProfile')
+        success_msg: default sslProfile for external connector configured
