@@ -31,6 +31,14 @@
         - name: Set flag if functional tests failed
           set_fact: functest_failed_flag="failed"
 
+- name: Check functional test failure flag
+  hosts: localhost
+  tasks:
+    - assert:
+        that:
+          - functest_failed_flag != "failed"
+        success_msg: Functional tests passed
+
 - name: Process qdr log
   hosts: qdrtest
   tasks:
@@ -52,9 +60,7 @@
         msg: "[WARNING] Found errors in the log. Please review above"
       when: qdrlog_content.find('ERROR (error)') != -1
 
-- name: Check functional test failure flag
-  hosts: localhost
-  tasks:
-    - fail:
-        msg: Functional tests failed
-      when: functest_failed_flag == "failed"
+    - assert:
+        that:
+          - "{{ qdrlog_content is search ('Configured Listener: ' + ansible_default_ipv4.address + ':5666 proto=any.* role=normal') }}"
+        success_msg: Local listener configured

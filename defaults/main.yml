@@ -5,6 +5,9 @@ qdr_conf_output_dir: /var/lib/config-data/ansible-generated/metrics_qdr
 # Connectors configuration (array of hashes).
 qdr_connectors: []
 
+# Set to edge-only or controller-mesh
+qdr_deployment_mode: edge-only
+
 # Corresponds to MetricsQdrUseSSL in THT
 # Set to true if it is required to use SSL or TLS on the connection for listener.
 qdr_listener_require_ssl: no

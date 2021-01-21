@@ -4,10 +4,18 @@
 - name: Check log for correct config
   hosts: qdrtest
   tasks:
-  - fail:
-      msg: "Router not started in Edge mode"
-    when: qdrlog_content.find('Router started in Edge mode') == -1
+  - assert:
+      that:
+        - qdrlog_content.find('Router started in Edge mode') != -1
+      success_msg: Router started in Edge mode
 
-  - fail:
-      msg: "No configured connector to internal mesh reported"
-    when: qdrlog_content is not search('Configured Connector:.*:5668 .* role=edge')
+  - assert:
+      that:
+        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 .* role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 .* role=edge')
+      success_msg: Connectors to internal mesh configured
+
+  - assert:
+      that:
+        - qdrlog_content is not search('stf-default-interconnect-5671-service-telemetry.example.com')
+      success_msg: External connector correctly supressed for edge nodes in mesh mode
