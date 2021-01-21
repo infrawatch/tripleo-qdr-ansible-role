@@ -25,7 +25,7 @@ jobs:
           path: "${{ github.repository }}"
       - name: Pre-pull container
         run: |
-          sudo docker pull docker.io/tripleomaster/centos-binary-qdrouterd:current-tripleo-rdo
+          sudo docker pull quay.io/tripleomaster/openstack-qdrouterd:current-tripleo
       - name: "Molecule"
         uses: gofrolist/molecule-action@v2
         with:
