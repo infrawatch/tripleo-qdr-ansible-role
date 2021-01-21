@@ -57,7 +57,7 @@
   tasks:
     - name: Slurp the file
       slurp:
-        src: "{{ qdr_log_output }}"
+        src: /var/log/qdrouterd/metrics_qdr.log
       register: qdrlog
 
     - name: Decode the content
