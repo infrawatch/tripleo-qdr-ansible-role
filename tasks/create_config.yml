@@ -4,7 +4,6 @@
 # 1) Mesh mode - Controllers form a QDR mesh which connects to the external endpoint, all other nodes connect to the mesh
 # 2) TLS Everywhere - Enabling SSL for mesh-to-mesh and edge-to-mesh connections
 
-
 - name: Get a mutable version of the connectors so we can supress it on edge nodes if controller-mesh is enabled
   set_fact:
     connectors: "{{ qdr_connectors }}"
@@ -37,34 +36,6 @@
   set_fact:
     # *CS TODO: Get this fed through in QdrVars, right now there is no good way to alter it
     log_enable: 'info+'
-
-##### Review this during next phase of TLS testing
-# Copied everything below from qdr-container-puppet.yaml
-    # This one doesn't seem used even in legacy puppet-qdr?
-          # - tripleo::profile::base::metrics::qdr::external_listener_addr:
-          #     get_param: [EndpointMap, MetricsQdrPublic, host]
-
-# # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
-
-          #         - - name: 'tlsProfile'
-          #             certFile: '/etc/pki/tls/certs/metrics_qdr.crt'
-          #             keyFile: '/etc/pki/tls/private/metrics_qdr.key'
-# # This is already in ansible as tripleo_internal_tlscafile
-          #             caCertFile: {get_param: InternalTLSCAFile}
-
-# # These could be constructed in ansible from listener_ssl_cert_file and listener_ssl_key_file
-# Adding this to the list of ssl_profiles we feed through
-          #     tripleo::profile::base::metrics::qdr::ssl_profiles:
-          #       list_concat:
-          #         - get_param: MetricsQdrSSLProfiles
-          #         - - name: 'tlsProfile'
-          #             certFile: '/etc/pki/tls/certs/metrics_qdr.crt'
-          #             keyFile: '/etc/pki/tls/private/metrics_qdr.key'
-# # This is already in ansible as tripleo_internal_tlscafile
-          #             caCertFile: {get_param: InternalTLSCAFile}
-          #   - tripleo::profile::base::metrics::qdr::ssl_profiles: {get_param: MetricsQdrSSLProfiles}
-#####
-
 
 - name: Configure the mesh mode settings if requested
   when: qdr_deployment_mode == 'controller-mesh'
@@ -151,6 +122,7 @@
         name: qdr_config
       vars:
         # These vars are passed through from tripleo unchanged
+        # *CS TODO: Hopefully I can eliminate all but one line of this block (connections) by aligning the names in qdr_config
         addresses: "{{ qdr_addresses }}"
         autolink_addresses: "{{ qdr_autolink_addresses }}"
         listener_auth_peer: "{{ qdr_listener_auth_peer }}"

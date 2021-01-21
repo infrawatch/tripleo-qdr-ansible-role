@@ -22,7 +22,7 @@
       debug:
         msg: "{{ qdrconfig_content.split('\n') }}"
 
-    - name: Start qdrouterd
+    - name: Start qdrouterd  # noqa 301
       command: qdrouterd -U qdrouterd -d
 
 - name: Functional tests
@@ -73,7 +73,7 @@
         msg: "[WARNING] Found errors in the log. Please review above"
       when: qdrlog_content.find('ERROR (error)') != -1
 
-- name: Check log for common QDR functionality
+- name: Check log for correct config of common QDR functionality
   hosts: qdrtest
   tasks:
     - assert:

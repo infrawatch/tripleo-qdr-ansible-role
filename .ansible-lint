@@ -1,2 +1,5 @@
 skip_list:  # or 'skip_list' to silence them completely
-  - '106'  # Role name {} does not match ``^[a-z][a-z0-9_]+$`` pattern
+  - '106'  # "Role name {} does not match ``^[a-z][a-z0-9_]+$`` pattern" - True
+  - '502'  # "All tasks should be named" - I don't want to name asserts, it's too verbose
+warn_list:
+  - '204' # "Lines should be no longer than 120 chars"  - except log lines
