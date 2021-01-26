@@ -4,4 +4,3 @@ roles:
     name: functional_tests
   - src: git+https://github.com/infrawatch/qdr-config-ansible-role
     name: qdr_config
-    version: csibbitt-1111-variable-renaming
