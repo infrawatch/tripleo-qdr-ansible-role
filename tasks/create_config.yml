@@ -18,14 +18,14 @@
 #     [1] https://github.com/infrawatch/tripleo-ansible-conversion-starter/blob/master/templates/macros.yml
 - name: Set listener address based on ServiceNetMap
   set_fact:
-    listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
+    qdr_listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
 
 - name: Handle EnableInternalTLS
   when: tripleo_enable_internal_tls
   block:
-    - name: Augment extra_ssl_profiles with internal profile
+    - name: Augment qdr_extra_ssl_profiles with internal profile
       set_fact:
-        extra_ssl_profiles: "{{ extra_ssl_profiles +
+        qdr_extra_ssl_profiles: "{{ qdr_extra_ssl_profiles +
                         [{ 'name': 'tlsProfile',
                             'certFile': qdr_listener_ssl_cert_file,
                             'keyFile': qdr_listener_ssl_key_file,
@@ -74,7 +74,7 @@
     block:
       - name: Set mode to interior
         set_fact:
-          router_mode: interior
+          qdr_router_mode: interior
 
       - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
         set_fact:
@@ -83,7 +83,7 @@
       - name: Add extra listener for edge -> interior
         set_fact:
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          extra_listeners:  "{{ extra_listeners + [{
+          qdr_extra_listeners:  "{{ qdr_extra_listeners + [{
                         'host': interior_ip,
                         'port': '5668',
                         'role': 'edge',
@@ -94,7 +94,7 @@
       - name: Add extra listener mesh connections
         set_fact:
           # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          extra_listeners:  "{{ extra_listeners + [{
+          qdr_extra_listeners:  "{{ qdr_extra_listeners + [{
                         'host': interior_ip,
                         'port': '5667',
                         'role': 'inter-router',
@@ -121,21 +121,4 @@
       include_role:
         name: qdr_config
       vars:
-        # These vars are passed through from tripleo unchanged
-        # *CS TODO: Hopefully I can eliminate all but one line of this block (connections) by aligning the names in qdr_config
-        addresses: "{{ qdr_addresses }}"
-        autolink_addresses: "{{ qdr_autolink_addresses }}"
-        listener_auth_peer: "{{ qdr_listener_auth_peer }}"
-        listener_port: "{{ qdr_listener_port }}"
-        listener_require_ssl: "{{ qdr_listener_require_ssl }}"
-        listener_sasl_mech: "{{ qdr_listener_sasl_mech }}"
-        listener_ssl_cert_db: "{{ qdr_listener_ssl_cert_db }}"
-        listener_ssl_cert_file: "{{ qdr_listener_ssl_cert_file }}"
-        listener_ssl_key_file: "{{ qdr_listener_ssl_key_file }}"
-        listener_ssl_password: "{{ qdr_listener_ssl_password }}"
-        listener_ssl_pw_file: "{{ qdr_listener_ssl_pw_file }}"
-        listener_trusted_certs: "{{ qdr_listener_trusted_certs }}"
-        log_output: "{{ qdr_log_output }}"
-        password: "{{ qdr_password }}"
-        ssl_profiles: "{{ qdr_ssl_profiles }}"
-        username: "{{ qdr_username }}"
+        qdr_connectors: "{{ connectors }}"

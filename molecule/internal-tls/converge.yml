@@ -4,8 +4,10 @@
 - name: Converge edge-only config
   hosts: qdrtest
   tasks:
-    - name: Set the variables we need that usually come from tripleo
-      set_fact:
+    - include_role:
+        name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
+        tasks_from: create_config
+      vars:
         qdr_conf_output_dir: /etc/qpid-dispatch/
         qdr_connectors:
           - host: stf-default-interconnect-5671-service-telemetry.example.com
@@ -13,8 +15,6 @@
             role: edge
             sslProfile: sslProfile
             verifyHostname: false
-        qdr_deployment_mode: edge-only
-        deploy_stage: deploy_steps_tasks
         controller_node_ips: 10.0.0.20,10.0.0.30,10.0.0.40
         ctlplane_ip: 10.0.0.10
         internal_api_ip: "{{ ansible_default_ipv4.address }}"
@@ -22,7 +22,3 @@
           standalone_metrics_qdr_network: internal_api
         tripleo_role_name: Standalone
         tripleo_enable_internal_tls: true
-
-    - include_role:
-        name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
-        tasks_from: create_config

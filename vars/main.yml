@@ -72,8 +72,8 @@ qdr_log_output: /var/log/qdrouterd/metrics_qdr.log
 # Corresponds to MetricsQdrSSLProfiles in THT
 # SSL Profiles for the connectors (array of hashes).
 qdr_ssl_profiles: [{'name': 'sslProfile'}]
-extra_ssl_profiles: []
-extra_listeners: []
+qdr_extra_ssl_profiles: []
+qdr_extra_listeners: []
 
 # Corresponds to MetricsQdrSslCertFile in THT
 # Path to SSL certificate file for listener.
@@ -108,5 +108,8 @@ qdr_listener_ssl_pw_file:
 # Set to true if it is required to encrypt connection to the peer for listener.
 qdr_listener_use_encryption: no
 
+qdr_router_mode: edge
+
 # Corresponds to EnableInternalTLS in THT
 tripleo_enable_internal_tls: false
+
