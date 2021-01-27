@@ -34,7 +34,7 @@
 
 - name: Set logging params
   set_fact:
-    # *CS TODO: Get this fed through in QdrVars, right now there is no good way to alter it
+    # RFE?: Get this fed through in QdrVars, right now there is no good way to alter it
     log_enable: 'info+'
 
 - name: Configure the mesh mode settings if requested
