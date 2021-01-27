@@ -1,0 +1,11 @@
+---
+- import_playbook: ../common/verify.yml
+
+
+- name: Check log for correct config
+  hosts: qdrtest
+  tasks:
+  - assert:
+      that:
+        - qdrlog_content is search('Created SSL Profile with name tlsProfile')
+      success_msg: tlsProfile configured

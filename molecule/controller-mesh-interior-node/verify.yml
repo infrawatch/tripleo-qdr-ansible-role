@@ -1,7 +1,7 @@
 ---
 - import_playbook: ../common/verify.yml
 
-- name: Check log for correct config
+- name: Check log for correct config of controller-mesh interior nodes
   hosts: qdrtest
   tasks:
   - assert:
@@ -11,14 +11,19 @@
 
   - assert:
       that:
-        - qdrlog_content is search('Configured Listener:.*:5668 .* role.inter-router')
-      success_msg: Inter-router listener configured
+        - qdrlog_content is search('Configured Listener:.*:5667 proto=any, role=inter-router')
+      success_msg: Mesh-to-mesh listener configured
 
   - assert:
       that:
-        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 .* role=edge')
-        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 .* role=edge')
-        - qdrlog_content is search('Configured Connector: 10.0.0.40:5668 .* role=edge')
+        - qdrlog_content is search('Configured Listener:.*:5668 proto=any, role=edge')
+      success_msg: Edge-to-mesh listener configured
+
+  - assert:
+      that:
+        - qdrlog_content is search('Configured Connector: 10.0.0.20:5667 proto=any, role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.30:5667 proto=any, role=edge')
+        - qdrlog_content is search('Configured Connector: 10.0.0.40:5667 proto=any, role=edge')
       success_msg: Connectors to other mesh nodes configured
 
   - assert:

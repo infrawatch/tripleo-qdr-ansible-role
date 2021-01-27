@@ -24,7 +24,7 @@ dependency:
     role-file: molecule/common/requirements.yml
 
 scenario:
-  name: controller-mesh-interior-node
+  name: internal-tls
   test_sequence:
     - destroy
     - dependency
