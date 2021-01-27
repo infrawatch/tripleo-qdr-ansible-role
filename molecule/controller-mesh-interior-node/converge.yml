@@ -5,7 +5,7 @@
   hosts: qdrtest
   tasks:
     - include_role:
-        name: "{{ playbook_dir }}/../../../tripleo-qdr-ansible-role"
+        name: "{{ playbook_dir }}/../../../tripleo_qdr"
         tasks_from: create_config
       vars:
         qdr_connectors:
