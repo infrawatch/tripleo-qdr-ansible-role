@@ -28,7 +28,7 @@ jobs:
           sudo docker pull quay.io/tripleomaster/openstack-qdrouterd:current-tripleo
       - name: Alias the role to match what it will be in tripleo-ansible
         run: |
-          ln -s "$(basename ${{ github.repository }})" "${{ github.repository }}/../tripleo_qdr"
+          ln -s "$(basename ${{ github.repository }})" "${{ github.repository }}/../tripleo_metrics_qdr"
       - name: "Molecule"
         uses: gofrolist/molecule-action@v2
         with:

@@ -5,7 +5,7 @@
   hosts: qdrtest
   tasks:
     - include_role:
-        name: "{{ playbook_dir }}/../../../tripleo_qdr"
+        name: "{{ playbook_dir }}/../../../tripleo_metrics_qdr"
         tasks_from: create_config
       vars:
         qdr_conf_output_dir: /etc/qpid-dispatch/
