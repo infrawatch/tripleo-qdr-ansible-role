@@ -11,11 +11,17 @@
 
   - assert:
       that:
-        - qdrlog_content is search('Configured Connector: 10.0.0.20:5668 proto=any, role=edge')
-        - qdrlog_content is search('Configured Connector: 10.0.0.30:5668 proto=any, role=edge')
+        - >-
+          qdrlog_content is
+          search('Configured Connector: 10.0.0.20:5668 proto=any, role=edge')
+        - >-
+          qdrlog_content is
+          search('Configured Connector: 10.0.0.30:5668 proto=any, role=edge')
       success_msg: Connectors to internal mesh configured
 
   - assert:
       that:
-        - qdrlog_content is not search('stf-default-interconnect-5671-service-telemetry.example.com')
-      success_msg: External connector correctly supressed for edge nodes in mesh mode
+        - >-
+          qdrlog_content is not
+          search('stf-default-interconnect-5671-service-telemetry.example.com')
+      success_msg: External connector correctly supressed for mesh edge nodes

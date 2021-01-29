@@ -15,7 +15,8 @@
             sslProfile: sslProfile
             verifyHostname: false
         qdr_deployment_mode: controller-mesh
-        controller_node_ips: "10.0.0.20,10.0.0.30,10.0.0.40,{{ ansible_default_ipv4.address }}"
+        controller_node_ips: "10.0.0.20,10.0.0.30,10.0.0.40,\
+                              {{ ansible_default_ipv4.address }}"
         ctlplane_ip: "{{ ansible_default_ipv4.address }}"
         internal_api_ip: "{{ ansible_default_ipv4.address }}"
         service_net_map:

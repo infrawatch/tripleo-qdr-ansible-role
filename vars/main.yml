@@ -2,7 +2,8 @@
 
 # Corresponds to MetricsQdrAddresses in THT
 # Addresses configuration (array of hashes).
-qdr_addresses: [{'prefix': 'collectd', 'distribution': 'multicast'}, {'prefix': 'ceilometer/metering.sample', 'distribution': 'multicast'}, {'prefix': 'ceilometer/event.sample', 'distribution': 'multicast'}]
+qdr_addresses: [{'prefix': 'collectd', 'distribution': 'multicast'},
+                {'prefix': 'ceilometer', 'distribution': 'multicast'}]
 
 # Corresponds to MetricsQdrAutoLinks in THT
 # AutoLinks for the Configured Addresses
@@ -24,19 +25,18 @@ qdr_extra_ssl_profiles: []
 
 # Corresponds to MetricsQdrAuthenticateClient in THT
 # Authenticate the client using SSL/TLS
-qdr_listener_auth_peer: no
+qdr_listener_auth_peer: no  # yamllint disable-line rule:truthy
 
 # Corresponds to MetricsQdrPort in THT
 # Service name or port number on which the qdrouterd will accept connections.
 qdr_listener_port: 5666
 
 # Corresponds to MetricsQdrUseSSL in THT
-# Set to true if it is required to use SSL or TLS on the connection for listener.
-qdr_listener_require_ssl: no
+# Set to yes if required to use SSL or TLS on the connection for listener.
+qdr_listener_require_ssl: no  # yamllint disable-line rule:truthy
 
 # Corresponds to MetricsQdrSaslMechanisms in THT
-# List of accepted SASL auth mechanisms for listener in format of comma separated
-# list.
+# List of SASL auth mechanisms for listener as of comma separated list.
 qdr_listener_sasl_mech: ANONYMOUS
 
 # Corresponds to MetricsQdrSslCertFile in THT
@@ -65,7 +65,7 @@ qdr_listener_trusted_certs:
 
 # Corresponds to MetricsQdrUseEncryption in THT
 # Set to true if it is required to encrypt connection to the peer for listener.
-qdr_listener_use_encryption: no
+qdr_listener_use_encryption: no  # yamllint disable-line rule:truthy
 
 qdr_log_output: /var/log/qdrouterd/metrics_qdr.log
 
@@ -86,7 +86,7 @@ qdr_username: guest
 # Corresponds to MetricsQdrExternalEndpoint in THT
 # Whether QDR should listen on external network interface. To enable listening
 # on external network one must deploy QDRs in mesh mode.
-metrics_qdr_external_endpoint: False
+metrics_qdr_external_endpoint: false
 
 # Corresponds to EnableInternalTLS in THT
 tripleo_enable_internal_tls: false

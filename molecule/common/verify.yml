@@ -29,16 +29,16 @@
   hosts: localhost
   tasks:
     - block:
-      - name: Clear the failure flag
-        set_fact: functest_failed_flag="unknown"
+        - name: Clear the failure flag
+          set_fact: functest_failed_flag="unknown"
 
-      - name: Run the qdr test from STF functional-tests
-        include_role:
-          name: functional_tests
-          tasks_from: test_qdr
-        vars:
-          qdr_container_name: 'qdrtest'
-          container_bin: ${CONTAINER_BIN:-docker}
+        - name: Run the qdr test from STF functional-tests
+          include_role:
+            name: functional_tests
+            tasks_from: test_qdr
+          vars:
+            qdr_container_name: 'qdrtest'
+            container_bin: ${CONTAINER_BIN:-docker}
 
       rescue:
         - name: Set flag if functional tests failed
@@ -78,7 +78,8 @@
   tasks:
     - assert:
         that:
-          - "{{ qdrlog_content is search ('Configured Listener: ' + ansible_default_ipv4.address + ':5666 proto=any, role=normal') }}"
+          - "{{ qdrlog_content is search ('Configured Listener: '
+           + ansible_default_ipv4.address + ':5666 proto=any, role=normal') }}"
         success_msg: Local listener configured
 
     - assert:

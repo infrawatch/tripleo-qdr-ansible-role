@@ -1,24 +1,29 @@
 ---
-# These tasks are responsible for the following tripleo-driven additions to the qdr config:
+# These tasks are handle tripleo-driven additions to the qdr config:
 #
-# 1) Mesh mode - Controllers form a QDR mesh which connects to the external endpoint, all other nodes connect to the mesh
+# 1) Mesh mode - Controllers form a QDR mesh which connects to the external
+#    endpoint, all other nodes connect to the mesh
 # 2) TLS Everywhere - Enabling SSL for mesh-to-mesh and edge-to-mesh connections
 
-- name: Get a mutable version of the connectors so we can supress it on edge nodes if controller-mesh is enabled
+- name: Mutable connectors so we can supress it on edge nodes if in mesh mode
   set_fact:
     connectors: "{{ qdr_connectors }}"
 
 # *CS
-# Q1. Alex Schultz suggested I consider moving this (computation of listener_addr) back to THT. It's so much more readable and testable here.
+# Q1. Alex Schultz suggested I consider moving this (computation of
+#     listener_addr) back to THT. It's so much more readable and testable here.
 #     Comments?
 # A1. Emma thinks it belongs here because it came from the output part of THT
-# Q2. I added a snake_case filter to help with changing tripleo_role_name == "CephStorage" into ceph_storage. I was
-#     looking for the code that does the initial conversion so I could hopefully reuse it or at least behave the same.
+# Q2. I added a snake_case filter to help with changing
+#     tripleo_role_name == "CephStorage" into ceph_storage. I was looking for
+#     the code that does the initial conversion so I could hopefully reuse it or
+#     at least behave the same.
 # A2. Emma has a third implementation[1] but it is not the one I need to match
-#     [1] https://github.com/infrawatch/tripleo-ansible-conversion-starter/blob/master/templates/macros.yml
+# [1] https://git.io/Jt8oz
 - name: Set listener address based on ServiceNetMap
   set_fact:
-    qdr_listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name + 'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
+    qdr_listener_addr: "{{ lookup('vars', service_net_map[ (tripleo_role_name +
+                       'MetricsQdrNetwork') | snake_case] + '_ip' ) }}"
 
 - name: Handle EnableInternalTLS
   when: tripleo_enable_internal_tls
@@ -34,85 +39,98 @@
 
 - name: Set logging params
   set_fact:
-    # RFE?: Get this fed through in QdrVars, right now there is no good way to alter it
+    # RFE?: Should be in QdrVars, right now there is no good way to alter it
     log_enable: 'info+'
 
 - name: Configure the mesh mode settings if requested
   when: qdr_deployment_mode == 'controller-mesh'
   block:
 
-  - name: Set the list of interior mesh nodes
-    set_fact:
-      interior_nodes_list: "{{ controller_node_ips.split(',') }}"
+    - debug:
+        var: controller_node_ips
 
-  # TODO(BZ1816046): metrics should have it's own network, and not use ctlplane.
-  - name: Set interior IP for mesh mode connections to use ctlplane
-    set_fact:
-      interior_ip: "{{ ctlplane_ip }}"
+    - name: Set the list of interior mesh nodes
+      set_fact:
+        interior_nodes_list: "{{ controller_node_ips.split(',') }}"
 
-  - name: Define connectors for edge -> interior, replacing existing connectors
-    when: not (interior_ip in interior_nodes_list)
-    block:
-      - name: Remove existing connector
-        set_fact:
-          connectors: []
+    - debug:
+        var: interior_nodes_list
 
-      - name: Create connectors to to two random interior nodes
-        loop: "{{ (interior_nodes_list | shuffle(seed=inventory_hostname))[0:2] }}"
-        set_fact:
-        # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          connectors: "{{ connectors + [{
-                        'host': item,
-                        'port': '5668',
-                        'role': 'edge',
-                        'verifyHostname': 'no',
-                        'saslMechanisms': 'ANONYMOUS'
-                      }] }}"
+    # TODO(BZ1816046): metrics should have it's own network, not use ctlplane.
+    - name: Set interior IP for mesh mode connections to use ctlplane
+      set_fact:
+        interior_ip: "{{ ctlplane_ip }}"
 
-  - name: Set additional listeners, connectors, and mode on interior mesh nodes
-    when: interior_ip in interior_nodes_list
-    block:
-      - name: Set mode to interior
-        set_fact:
-          qdr_router_mode: interior
+    - name: Define connectors for edge->interior, replacing existing connectors
+      when: not (interior_ip in interior_nodes_list)
+      block:
+        - name: Remove existing connector
+          set_fact:
+            connectors: []
 
-      - name: Set list of OTHER interior nodes with which to form mesh connections (ones with a lower ordinal position than us in the list)
-        set_fact:
-          mesh_connection_nodes_list: "{{ interior_nodes_list[0:interior_nodes_list.index(interior_ip)] }}"
+        - name: Create connectors to two random interior nodes
+          loop: "{{ (interior_nodes_list |
+                    shuffle(seed=inventory_hostname))[0:2] }}"
+          set_fact:
+            # *CS TODO: Add the SSL support to mesh mode like node_base from
+            # the puppet (internal_tls), see https://git.io/Jt8oP
+            connectors: "{{ connectors + [{
+                          'host': item,
+                          'port': '5668',
+                          'role': 'edge',
+                          'verifyHostname': 'no',
+                          'saslMechanisms': 'ANONYMOUS'
+                        }] }}"
 
-      - name: Add extra listener for edge -> interior
-        set_fact:
-          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          qdr_extra_listeners:  "{{ qdr_extra_listeners + [{
-                        'host': interior_ip,
-                        'port': '5668',
-                        'role': 'edge',
-                        'authenticatePeer': 'no',
-                        'saslMechanisms': 'ANONYMOUS'}]
-                      }}"
+    - name: Set additional listeners, connectors, mode on interior mesh nodes
+      when: interior_ip in interior_nodes_list
+      block:
+        - name: Set mode to interior
+          set_fact:
+            qdr_router_mode: interior
 
-      - name: Add extra listener mesh connections
-        set_fact:
-          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          qdr_extra_listeners:  "{{ qdr_extra_listeners + [{
-                        'host': interior_ip,
-                        'port': '5667',
-                        'role': 'inter-router',
-                        'authenticatePeer': 'no',
-                        'saslMechanisms': 'ANONYMOUS'}]
-                      }}"
+        - name: Set list of OTHER interior nodes with which to form mesh
+                connections (ones with a lower ordinal position than us)
+          set_fact:
+            mesh_connection_nodes_list: "{{
+              interior_nodes_list[0:interior_nodes_list.index(interior_ip)] }}"
 
-      - name: Add mesh connections
-        loop: "{{ mesh_connection_nodes_list }}"
-        set_fact:
-          # *CS TODO: Add the SSL support to mesh mode like node_base from the puppet (internal_tls), see https://github.com/openstack/puppet-tripleo/blob/432b0497f7d0d051f2b4bf34c3e841f2b97bbb44/manifests/profile/base/metrics/qdr.pp#L141
-          connectors: "{{ connectors + [{
-                        'host': item,
-                        'port': '5667',
-                        'role': 'inter-router',
-                        'verifyHostname': 'no',
-                        'saslMechanisms': 'ANONYMOUS'}]
-                      }}"
+        - name: Add extra listener for edge -> interior
+          set_fact:
+            # *CS TODO: Add the SSL support to mesh mode like node_base from
+            # the puppet (internal_tls), see https://git.io/Jt8oP
+            qdr_extra_listeners: "{{ qdr_extra_listeners + [{
+                          'host': interior_ip,
+                          'port': '5668',
+                          'role': 'edge',
+                          'authenticatePeer': 'no',
+                          'saslMechanisms': 'ANONYMOUS'}]
+                        }}"
+
+        - name: Add extra listener mesh connections
+          set_fact:
+            # *CS TODO: Add the SSL support to mesh mode like node_base from
+            # the puppet (internal_tls), see https://git.io/Jt8oP
+            qdr_extra_listeners: "{{ qdr_extra_listeners + [{
+                          'host': interior_ip,
+                          'port': '5667',
+                          'role': 'inter-router',
+                          'authenticatePeer': 'no',
+                          'saslMechanisms': 'ANONYMOUS'}]
+                        }}"
+
+        - name: Add mesh connections
+          loop: "{{ mesh_connection_nodes_list }}"
+          set_fact:
+            # *CS TODO: Add the SSL support to mesh mode like node_base from
+            # the puppet (internal_tls), see https://git.io/Jt8oP
+            connectors: "{{ connectors + [{
+                          'host': item,
+                          'port': '5667',
+                          'role': 'inter-router',
+                          'verifyHostname': 'no',
+                          'saslMechanisms': 'ANONYMOUS'}]
+                        }}"
 # End of mesh-mode block
 
 - name: "Include QDR config role"
